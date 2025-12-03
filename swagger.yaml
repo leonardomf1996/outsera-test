@@ -1,0 +1,169 @@
+openapi: 3.0.0
+info:
+  title: Golden Raspberry Awards API
+  version: 1.0.0
+  description: API RESTful para leitura da lista de indicados e vencedores da categoria Pior Filme do Golden Raspberry Awards
+  contact:
+    name: Leonardo Furtado
+    email: contato@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor de Desenvolvimento
+  - url: https://api.production.com
+    description: Servidor de Produção
+
+tags:
+  - name: Producers
+    description: Endpoints relacionados aos produtores e intervalos de prêmios
+
+paths:
+  /producers/intervals:
+    get:
+      summary: Obter intervalos de prêmios dos produtores
+      description: |
+        Retorna o produtor com maior intervalo entre dois prêmios consecutivos 
+        e o que obteve dois prêmios mais rápido.
+        
+        Este endpoint analisa todos os filmes vencedores do Golden Raspberry Awards
+        e calcula os intervalos entre prêmios para cada produtor que ganhou múltiplas vezes.
+        
+        **Nota:** Este endpoint não aceita parâmetros. Ele retorna automaticamente todos os 
+        intervalos calculados com base nos dados disponíveis no banco de dados.
+      tags:
+        - Producers
+      operationId: getProducerIntervals
+      parameters: []
+      responses:
+        '200':
+          description: Intervalos calculados com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProducerIntervalResponse'
+              examples:
+                success:
+                  summary: Exemplo de resposta bem-sucedida
+                  value:
+                    min:
+                      - producer: Joel Silver
+                        interval: 1
+                        previousWin: 1990
+                        followingWin: 1991
+                    max:
+                      - producer: Matthew Vaughn
+                        interval: 13
+                        previousWin: 2002
+                        followingWin: 2015
+                multipleProducers:
+                  summary: Múltiplos produtores com mesmo intervalo
+                  value:
+                    min:
+                      - producer: Producer A
+                        interval: 1
+                        previousWin: 2000
+                        followingWin: 2001
+                      - producer: Producer B
+                        interval: 1
+                        previousWin: 2010
+                        followingWin: 2011
+                    max:
+                      - producer: Producer C
+                        interval: 20
+                        previousWin: 1980
+                        followingWin: 2000
+                empty:
+                  summary: Sem produtores com múltiplos prêmios
+                  value:
+                    min: []
+                    max: []
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Internal server error
+
+components:
+  schemas:
+    ProducerInterval:
+      type: object
+      required:
+        - producer
+        - interval
+        - previousWin
+        - followingWin
+      properties:
+        producer:
+          type: string
+          description: Nome do produtor
+          example: Joel Silver
+        interval:
+          type: integer
+          description: Intervalo em anos entre dois prêmios consecutivos
+          minimum: 1
+          example: 1
+        previousWin:
+          type: integer
+          description: Ano do prêmio anterior
+          minimum: 1900
+          maximum: 2100
+          example: 1990
+        followingWin:
+          type: integer
+          description: Ano do prêmio seguinte
+          minimum: 1900
+          maximum: 2100
+          example: 1991
+      example:
+        producer: Joel Silver
+        interval: 1
+        previousWin: 1990
+        followingWin: 1991
+
+    ProducerIntervalResponse:
+      type: object
+      required:
+        - min
+        - max
+      properties:
+        min:
+          type: array
+          description: |
+            Lista de produtores com o menor intervalo entre prêmios.
+            Pode conter múltiplos produtores se houver empate.
+          items:
+            $ref: '#/components/schemas/ProducerInterval'
+        max:
+          type: array
+          description: |
+            Lista de produtores com o maior intervalo entre prêmios.
+            Pode conter múltiplos produtores se houver empate.
+          items:
+            $ref: '#/components/schemas/ProducerInterval'
+      example:
+        min:
+          - producer: Joel Silver
+            interval: 1
+            previousWin: 1990
+            followingWin: 1991
+        max:
+          - producer: Matthew Vaughn
+            interval: 13
+            previousWin: 2002
+            followingWin: 2015
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Mensagem de erro descritiva
+          example: Internal server error
