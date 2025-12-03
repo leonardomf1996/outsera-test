@@ -44,6 +44,7 @@ Essa estrutura facilita a manutenção e permite trocar implementações sem afe
 
 - Node.js 20 ou superior
 - NPM
+- Docker e docker-compose (opcionais)
 
 ### Instalação
 
