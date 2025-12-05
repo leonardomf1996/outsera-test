@@ -19,7 +19,7 @@ export class MovieRepository implements IMovieRepository {
 
   async findWinners(): Promise<Movie[]> {
     return new Promise((resolve, reject) => {
-      const query = 'SELECT * FROM movies WHERE winner = 1';
+      const query = 'SELECT year, producers FROM movies WHERE winner = 1';
       
       this.db.all(query, [], (err, rows: any[]) => {
         if (err) {
