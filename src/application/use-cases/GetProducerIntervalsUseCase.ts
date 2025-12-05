@@ -12,31 +12,46 @@ export class GetProducerIntervalsUseCase {
     const winners = await this.movieRepository.findWinners();
     const producerWins = this.producerService.groupWinsByProducer(winners);
     
-    const intervals: ProducerInterval[] = [];
+    if (producerWins.size === 0) return { min: [], max: [] };
 
-    producerWins.forEach((wins, producer) => {
-      if (wins.length >= 2) {
-        for (let i = 0; i < wins.length - 1; i++) {
-          intervals.push({
-            producer,
-            interval: wins[i + 1] - wins[i],
-            previousWin: wins[i],
-            followingWin: wins[i + 1]
-          });
+    let minInterval = Infinity;
+    let maxInterval = -Infinity;
+    const minIntervals: ProducerInterval[] = [];
+    const maxIntervals: ProducerInterval[] = [];
+
+    for (const [producer, wins] of producerWins) {
+      if (wins.length < 2) continue;
+
+      for (let i = 0; i < wins.length - 1; i++) {
+        const interval = wins[i + 1] - wins[i];
+        const producerInterval: ProducerInterval = {
+          producer,
+          interval,
+          previousWin: wins[i],
+          followingWin: wins[i + 1]
+        };
+
+        if (interval < minInterval) {
+          minInterval = interval;
+          minIntervals.length = 0;
+          minIntervals.push(producerInterval);
+        } else if (interval === minInterval) {
+          minIntervals.push(producerInterval);
+        }
+
+        if (interval > maxInterval) {
+          maxInterval = interval;
+          maxIntervals.length = 0;
+          maxIntervals.push(producerInterval);
+        } else if (interval === maxInterval) {
+          maxIntervals.push(producerInterval);
         }
       }
-    });
-
-    if (intervals.length === 0) {
-      return { min: [], max: [] };
     }
 
-    const minInterval = Math.min(...intervals.map(i => i.interval));
-    const maxInterval = Math.max(...intervals.map(i => i.interval));
-
     return {
-      min: intervals.filter(i => i.interval === minInterval),
-      max: intervals.filter(i => i.interval === maxInterval)
+      min: minIntervals,
+      max: maxIntervals
     };
   }
 }
