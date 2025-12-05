@@ -43,8 +43,17 @@ export class Database {
         if (err) {
           console.error('Error creating table', err.message);
           reject(err);
-        } else {
-          resolve();
+        } else {          
+          const createIndexQuery = `CREATE INDEX IF NOT EXISTS idx_movies_winner ON movies(winner)`;
+          
+          this.db.run(createIndexQuery, (err) => {
+            if (err) {
+              console.error('Error creating index', err.message);
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
         }
       });
     });
