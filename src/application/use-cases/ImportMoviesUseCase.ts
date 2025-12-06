@@ -20,10 +20,7 @@ export class ImportMoviesUseCase {
         const header = lines[0];
         const expectedHeader = 'year;title;studios;producers;winner';
         
-        if (!header || !header.includes('year') || !header.includes('title')) {
-          console.warn(`Warning: CSV header may be invalid. Expected format: ${expectedHeader}`);
-          console.warn(`Found: ${header}`);
-        }
+        if (!header || !header.includes('year') || !header.includes('title')) console.warn(`Warning: CSV header may be invalid. Expected format: ${expectedHeader}`);
         
         /* Remove cabeçalho */
         lines.shift(); 
